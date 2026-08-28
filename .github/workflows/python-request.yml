@@ -1,45 +1,62 @@
 # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Python on pull request
+name: pytest Build
 
 on:
   pull_request:
+    paths:
+      - spatial_interpolators/**
+      - test/**
+      - .github/workflows/python-request.yml
+    types: [opened, synchronize, reopened, ready_for_review]
+
+# set permissions for the workflow
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   build:
 
+    if: github.event.pull_request.draft == false
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        python-version: [3.11]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     env:
       OS: ${{ matrix.os }}
-      PYTHON: ${{ matrix.python-version }}
     defaults:
       run:
         shell: bash -l {0}
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up mamba ${{ matrix.python-version }}
-      uses: mamba-org/setup-micromamba@v1
-      with:
-        micromamba-version: 'latest'
-        environment-file: environment.yml
-        init-shell: bash
-        environment-name: spatial-interpolators
-        cache-environment: true
-        post-cleanup: 'all'
-        create-args: >-
-          python=${{ matrix.python-version }}
-          flake8
-          pytest
-          pytest-cov
+    - uses: actions/checkout@v6
+    - name: Set up pixi environment
+      uses: prefix-dev/setup-pixi@v0.9.6
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        pixi run lint
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        pixi run lint "--exit-zero --max-complexity=10 --max-line-length=127"
+    - name: Test with pytest
+      run: |
+        pixi run coverage
+    - name: Create coverage comment
+      if: github.event.pull_request.head.repo.full_name == github.repository
+      uses: MishaKav/pytest-coverage-comment@v1
+      with:
+        pytest-xml-coverage-path: coverage.xml
+        junitxml-path: pytest.xml
+        unique-id-for-comment: ${{ matrix.os }}
+        title: Coverage for Python on ${{ matrix.os }}
+        hide-report: true
+        remove-links-to-files: true
+        remove-links-to-lines: true
+    - name: Archive code coverage results
+      if: github.event.pull_request.head.repo.full_name == github.repository
+      uses: actions/upload-artifact@v6
+      with:
+        name: code-coverage-report-${{ matrix.os }}
+        path: coverage.xml

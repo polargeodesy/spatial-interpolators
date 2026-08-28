@@ -9,3 +9,8 @@ from spatial_interpolators.shepard_interpolant import shepard_interpolant
 from spatial_interpolators.sph_bilinear import sph_bilinear
 from spatial_interpolators.inpaint import inpaint
 import spatial_interpolators.spatial
+import spatial_interpolators.version
+
+
+# get version information
+__version__ = spatial_interpolators.version.version

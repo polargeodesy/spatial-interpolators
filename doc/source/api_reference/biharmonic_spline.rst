@@ -1,6 +1,6 @@
-=================
-biharmonic_spline
-=================
+===========================================
+``spatial_interpolators.biharmonic_spline``
+===========================================
 
 - Interpolates data using 2-dimensional biharmonic splines
 - Can use surface splines in tension
@@ -16,6 +16,6 @@ Calling Sequence
 
 `Source code`__
 
-.. __: https://github.com/tsutterley/spatial-interpolators/blob/main/spatial_interpolators/biharmonic_spline.py
+.. __: https://github.com/polargeodesy/spatial-interpolators/blob/main/spatial_interpolators/biharmonic_spline.py
 
 .. autofunction:: spatial_interpolators.biharmonic_spline
