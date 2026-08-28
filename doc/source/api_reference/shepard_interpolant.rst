@@ -1,6 +1,6 @@
-===================
-shepard_interpolant
-===================
+=============================================
+``spatial_interpolators.shepard_interpolant``
+=============================================
 
 - Interpolates data by evaluating Shepard Interpolants based on inverse distances
 
@@ -14,6 +14,6 @@ Calling Sequence
 
 `Source code`__
 
-.. __: https://github.com/tsutterley/spatial-interpolators/blob/main/spatial_interpolators/shepard_interpolant.py
+.. __: https://github.com/polargeodesy/spatial-interpolators/blob/main/spatial_interpolators/shepard_interpolant.py
 
 .. autofunction:: spatial_interpolators.shepard_interpolant

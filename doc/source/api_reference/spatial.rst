@@ -1,12 +1,12 @@
-=======
-spatial
-=======
+=================================
+``spatial_interpolators.spatial``
+=================================
 
 Utilities for operating on spatial data
 
 `Source code`__
 
-.. __: https://github.com/tsutterley/spatial-interpolators/blob/main/spatial_interpolators/spatial.py
+.. __: https://github.com/polargeodesy/spatial-interpolators/blob/main/spatial_interpolators/spatial.py
 
 General Methods
 ===============
@@ -25,4 +25,4 @@ General Methods
 
 .. autofunction:: spatial_interpolators.spatial.to_geodetic
 
-.. autofunction:: spatial_interpolators.spatial.scale_areas
+.. autofunction:: spatial_interpolators.spatial.scale_factors

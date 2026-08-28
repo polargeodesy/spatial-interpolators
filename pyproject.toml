@@ -1,0 +1,208 @@
+[build-system]
+requires = ["setuptools>=77", "wheel", "cython"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spatial-interpolators"
+version = "1.0.1"
+description = "Spatial interpolation tools for Python"
+keywords = [
+    "spatial interpolation",
+    "interpolation over a sphere",
+    "regridding",
+]
+authors = [
+    {name = "Tyler Sutterley"},
+    {email = "tsutterl@uw.edu"}
+]
+maintainers = [
+    {name = "spatial-interpolators contributors"}
+]
+license = "MIT"
+license-files = ["LICENSE"]
+readme = {file = "README.md", content-type = "text/markdown"}
+
+requires-python = "~=3.9"
+dependencies = [
+    "cython",
+    "numpy",
+    "scipy>=1.10.1",
+]
+
+classifiers=[
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+
+[project.urls]
+Homepage = "https://spatial-interpolators.readthedocs.io"
+Documentation = "https://spatial-interpolators.readthedocs.io"
+Repository = "https://github.com/polargeodesy/spatial-interpolators"
+Issues = "https://github.com/polargeodesy/spatial-interpolators/issues"
+
+[project.optional-dependencies]
+doc = ["docutils>=0.17", "graphviz", "ipympl", "myst-nb", "numpydoc", "sphinx", "sphinx-argparse>=0.4", "sphinxcontrib-bibtex", "sphinx-design", "sphinx_rtd_theme"]
+all = ["jupyterlab", "matplotlib", "notebook"]
+dev = ["flake8", "gh", "pytest>=4.6", "pytest-cov", "pytest-xdist"]
+
+[project.scripts]
+"fetch_test_data.py" = "spatial_interpolators.datasets.fetch_test_data:main" 
+
+[tool.setuptools]
+ext-modules = [
+    {name = "spatial_interpolators.PvQv_C", sources=["spatial_interpolators/PvQv_C.pyx"]}
+]
+
+[tool.setuptools.packages.find]
+exclude = ["providers*", "run*", "test*"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+norecursedirs = ".git"
+addopts = "-n auto --verbose --capture=no -W ignore::UserWarning"
+python_files = [
+    "test*.py"
+]
+testpaths = [
+    "test"
+]
+
+[tool.coverage.run]
+branch = true
+source = [
+    "spatial-interpolators",
+]
+omit = [
+    "doc/*",
+    "spatial-interpolators/datasets/*",
+    "test/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+precision = 2
+
+[tool.ruff]
+line-length = 80
+indent-width = 4
+exclude = [
+    ".git",
+    ".pixi",
+    "build",
+    "run",
+    "test",
+]
+
+[tool.ruff.lint]
+select = [
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+    # ruff-specific
+    "RUF",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.format]
+indent-style = "space"
+line-ending = "auto"
+docstring-code-format = false
+
+[tool.pixi.workspace]
+name = "spatial-interpolators"
+authors = ["spatial-interpolators contributors"]
+channels = ["conda-forge"]
+platforms = ["osx-arm64", "linux-64", "win-64"]
+
+[tool.pixi.pypi-dependencies]
+spatial-interpolators = { path = ".", editable = true }
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+all = { features = ["all"], solve-group = "default" }
+dev = { features = ["all", "dev", "doc"], solve-group = "default" }
+doc = { features = ["all", "doc"], solve-group = "default" }
+
+[tool.pixi.tasks.start]
+cmd = "jupyter lab"
+cwd = "doc/source/notebooks"
+description = "Start JupyterLab in the notebooks directory"
+
+[tool.pixi.tasks.export-env]
+args = [ { "arg" = "flags", "default" = "" } ]
+cmd = "pixi workspace export conda-environment {{ flags }} > environment.yml"
+description = "Export workspace to a conda environment file" 
+
+[tool.pixi.feature.doc.tasks.docs]
+args = [ { "arg" = "builder", "default" = "html"}, { "arg" = "flags", "default" = "" } ]
+cmd = "make {{ builder }} {{ flags }}"
+cwd = "doc"
+description = "Create documentation with sphinx"
+
+[tool.pixi.feature.doc.tasks.clean-docs]
+args = [ { "arg" = "builder", "default" = "html"}, { "arg" = "flags", "default" = "" } ]
+cmd = "make clean && make {{ builder }} {{ flags }}"
+cwd = "doc"
+description = "Remove build artifacts and rebuild the documentation with sphinx"
+
+[tool.pixi.feature.dev.tasks.test]
+args = [ { "arg" = "flags", "default" = "" }, { "arg" = "test", "default" = "." } ]
+cmd = "pytest {{ flags }} {{ test }}"
+cwd = "test"
+description = "Run the pytest suite"
+
+[tool.pixi.feature.dev.tasks.coverage]
+cmd = "pytest -n=0 --cov=spatial_interpolators --junitxml=pytest.xml --cov-report=xml test"
+description = "Run the pytest suite and create coverage reports"
+
+[tool.pixi.feature.dev.tasks.lint]
+args = [ { "arg" = "flags", "default" = "--select=E9,F63,F7,F82 --show-source" }, { "arg" = "test", "default" = "." } ]
+cmd = "flake8 {{ test }} --count {{ flags }} --statistics --extend-exclude 'build/,run/,*.ipynb_checkpoints/,.pixi/'"
+description = "Run flake8 to check for compilation errors"
+
+[tool.pixi.dependencies]
+cython = "*"
+numpy = "*"
+scipy = ">=1.16.0"
+
+[tool.pixi.feature.all.dependencies]
+jupyterlab = "*"
+matplotlib-base = "*"
+notebook = "*"
+
+[tool.pixi.feature.dev.dependencies]
+flake8 = "*"
+gh = "*"
+pytest = "*"
+pytest-cov = "*"
+pytest-xdist = "*"
+
+[tool.pixi.feature.doc.dependencies]
+docutils = ">=0.17"
+graphviz = "*"
+ipympl = "*"
+myst-nb = "*"
+numpydoc = "*"
+sphinx = "*"
+sphinx-argparse = "*"
+sphinxcontrib-bibtex = "*"
+sphinx-design = "*"
+sphinx_rtd_theme = "*"

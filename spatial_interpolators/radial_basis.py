@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-u"""
+"""
 radial_basis.py
-Written by Tyler Sutterley (05/2022)
+Written by Tyler Sutterley (08/2026)
 
 Interpolates data using radial basis functions
 
@@ -49,6 +49,7 @@ REFERENCES:
         Computational Mathematics, 2003.
 
 UPDATE HISTORY:
+    Updated 08/2026: fix case where floating point errors cause negative roots
     Updated 05/2022: updated docstrings to numpy documentation format
     Updated 01/2022: added function docstrings
     Updated 07/2021: using scipy spatial distance routines
@@ -61,14 +62,28 @@ UPDATE HISTORY:
     Updated 10/2014: added third dimension (spherical)
     Written 08/2014
 """
+
 from __future__ import print_function, division
 import numpy as np
 import scipy.spatial
 
-def radial_basis(xs, ys, zs, XI, YI, smooth=0.0, metric='euclidean',
-    epsilon=None, method='inverse', polynomial=None):
+
+def radial_basis(
+    xs,
+    ys,
+    zs,
+    XI,
+    YI,
+    smooth=0.0,
+    metric="euclidean",
+    epsilon=None,
+    method="inverse",
+    polynomial=None,
+    **kwargs,
+):
     """
-    Interpolates data using radial basis functions
+    Interpolates data using radial basis functions :cite:p:`Hardy:1971em`
+    :cite:p:`Buhmann:2003cc`
 
     Parameters
     ----------
@@ -105,17 +120,6 @@ def radial_basis(xs, ys, zs, XI, YI, smooth=0.0, metric='euclidean',
     Returns
     -------
     ZI: interpolated data grid
-
-    References
-    ----------
-    .. [Hardy1971] R. L. Hardy,
-        "Multiquadric equations of topography and other irregular surfaces,"
-        *Journal of Geophysical Research*, 76(8), 1905-1915, (1971).
-        `doi: 10.1029/JB076i008p01905
-        <https://doi.org/10.1029/JB076i008p01905>`_
-    .. [Buhmann2003] M. Buhmann, "Radial Basis Functions",
-        *Cambridge Monographs on Applied and Computational Mathematics*,
-        (2003).
     """
 
     # remove singleton dimensions
@@ -125,48 +129,29 @@ def radial_basis(xs, ys, zs, XI, YI, smooth=0.0, metric='euclidean',
     XI = np.squeeze(XI)
     YI = np.squeeze(YI)
     # size of new matrix
-    if (np.ndim(XI) == 1):
+    if np.ndim(XI) == 1:
         nx = len(XI)
     else:
         nx, ny = np.shape(XI)
 
     # Check to make sure sizes of input arguments are correct and consistent
     if (len(zs) != len(xs)) | (len(zs) != len(ys)):
-        raise Exception('Length of input arrays must be equal')
-    if (np.shape(XI) != np.shape(YI)):
-        raise Exception('Size of output arrays must be equal')
+        raise Exception("Length of input arrays must be equal")
+    if np.shape(XI) != np.shape(YI):
+        raise Exception("Size of output arrays must be equal")
 
-    # create python dictionary of radial basis function formulas
-    radial_basis_functions = {}
-    radial_basis_functions['multiquadric'] = multiquadric
-    radial_basis_functions['inverse_multiquadric'] = inverse_multiquadric
-    radial_basis_functions['inverse'] = inverse_multiquadric
-    radial_basis_functions['inverse_quadratic'] = inverse_quadratic
-    radial_basis_functions['gaussian'] = gaussian
-    radial_basis_functions['linear'] = poly_spline1
-    radial_basis_functions['cubic'] = poly_spline3
-    radial_basis_functions['quintic'] = poly_spline5
-    radial_basis_functions['thin_plate'] = thin_plate
-    # check if formula name is listed
-    if method in radial_basis_functions.keys():
-        RBF = radial_basis_functions[method]
-    else:
-        raise ValueError(f"Method {method} not implemented")
+    # get formula for radial basis function
+    RBF, kwargs = formula(method)
 
-    # Creation of data distance matrix
-    # Data to Data
-    if (metric == 'brute'):
+    # Computation of data distance matrix (data to data)
+    if metric == "brute":
         # use linear algebra to compute euclidean distances
-        Rd = distance_matrix(
-            np.array([xs, ys]),
-            np.array([xs, ys])
-            )
+        Rd = distance_matrix(np.array([xs, ys]), np.array([xs, ys]))
     else:
         # use scipy spatial distance routines
         Rd = scipy.spatial.distance.cdist(
-            np.array([xs, ys]).T,
-            np.array([xs, ys]).T,
-            metric=metric)
+            np.array([xs, ys]).T, np.array([xs, ys]).T, metric=metric
+        )
     # shape of distance matrix
     N, M = np.shape(Rd)
 
@@ -179,48 +164,47 @@ def radial_basis(xs, ys, zs, XI, YI, smooth=0.0, metric='euclidean',
     # possible augmentation of the PHI Matrix with polynomial Vectors
     if polynomial is None:
         # calculate radial basis function for data-to-data with smoothing
-        PHI = RBF(epsilon, Rd) + np.eye(N, M=M)*smooth
+        PHI = RBF(epsilon, Rd, **kwargs) + np.eye(N, M=M) * smooth
         DMAT = zs.copy()
     else:
         # number of polynomial coefficients
-        nt = (polynomial**2 + 3*polynomial)//2 + 1
+        nt = (polynomial**2 + 3 * polynomial) // 2 + 1
         # calculate radial basis function for data-to-data with smoothing
-        PHI = np.zeros((N+nt, M+nt))
-        PHI[:N, :M] = RBF(epsilon, Rd) + np.eye(N, M=M)*smooth
+        PHI = np.zeros((N + nt, M + nt))
+        PHI[:N, :M] = RBF(epsilon, Rd, **kwargs) + np.eye(N, M=M) * smooth
         # augmentation of PHI matrix with polynomials
         POLY = polynomial_matrix(xs, ys, polynomial)
         DMAT = np.concatenate(([zs, np.zeros((nt))]), axis=0)
         # augment PHI matrix
         for t in range(nt):
-            PHI[:N, M+t] = POLY[:, t]
-            PHI[N+t, :M] = POLY[:, t]
+            PHI[:N, M + t] = POLY[:, t]
+            PHI[N + t, :M] = POLY[:, t]
 
     # Computation of the Weights
     w = np.linalg.lstsq(PHI, DMAT[:, np.newaxis], rcond=-1)[0]
 
-    # Computation of distance Matrix
     # Computation of distance Matrix (data to mesh points)
-    if (metric == 'brute'):
+    if metric == "brute":
         # use linear algebra to compute euclidean distances
         Re = distance_matrix(
-            np.array([XI.flatten(), YI.flatten()]),
-            np.array([xs, ys])
-            )
+            np.array([XI.flatten(), YI.flatten()]), np.array([xs, ys])
+        )
     else:
         # use scipy spatial distance routines
         Re = scipy.spatial.distance.cdist(
             np.array([XI.flatten(), YI.flatten()]).T,
             np.array([xs, ys]).T,
-            metric=metric)
+            metric=metric,
+        )
     # calculate radial basis function for data-to-mesh matrix
-    E = RBF(epsilon, Re)
+    E = RBF(epsilon, Re, **kwargs)
 
     # possible augmentation of the Evaluation Matrix with polynomial vectors
     if polynomial is not None:
         P = polynomial_matrix(XI.flatten(), YI.flatten(), polynomial)
         E = np.concatenate(([E, P]), axis=1)
     # calculate output interpolated array (or matrix)
-    if (np.ndim(XI) == 1):
+    if np.ndim(XI) == 1:
         ZI = np.squeeze(np.dot(E, w))
     else:
         ZI = np.zeros((nx, ny))
@@ -228,48 +212,80 @@ def radial_basis(xs, ys, zs, XI, YI, smooth=0.0, metric='euclidean',
     # return the interpolated array (or matrix)
     return ZI
 
+
+# select radial basis function
+def formula(method):
+    # check if formula name is listed
+    RBF_formulas = [
+        "multiquadric",
+        "inverse_multiquadric",
+        "inverse",
+        "quadratic",
+        "inverse_quadratic",
+        "gaussian",
+        "linear",
+        "cubic",
+        "quintic",
+        "thin_plate",
+    ]
+    assert method in RBF_formulas, f"Method {method} not implemented"
+    # create python dictionary of radial basis function formulas
+    radial_basis_functions = {key: {} for key in RBF_formulas}
+    radial_basis_functions["multiquadric"]["functional"] = poly
+    radial_basis_functions["multiquadric"]["order"] = 0.5
+    radial_basis_functions["inverse_multiquadric"]["functional"] = poly
+    radial_basis_functions["inverse_multiquadric"]["order"] = -0.5
+    radial_basis_functions["inverse"]["functional"] = poly
+    radial_basis_functions["inverse"]["order"] = -0.5
+    radial_basis_functions["quadratic"]["functional"] = poly
+    radial_basis_functions["quadratic"]["order"] = 1.0
+    radial_basis_functions["inverse_quadratic"]["functional"] = poly
+    radial_basis_functions["inverse_quadratic"]["order"] = -1.0
+    radial_basis_functions["gaussian"]["functional"] = gaussian
+    radial_basis_functions["linear"]["functional"] = poly_spline
+    radial_basis_functions["linear"]["order"] = 1.0
+    radial_basis_functions["cubic"]["functional"] = poly_spline
+    radial_basis_functions["cubic"]["order"] = 3.0
+    radial_basis_functions["quintic"]["functional"] = poly_spline
+    radial_basis_functions["quintic"]["order"] = 5.0
+    radial_basis_functions["thin_plate"]["functional"] = thin_plate
+    # radial basis function
+    RBF = radial_basis_functions[method]["functional"]
+    kwargs = {
+        k: v
+        for k, v in radial_basis_functions[method].items()
+        if k != "functional"
+    }
+    # return functional and arguments
+    return RBF, kwargs
+
+
 # define radial basis function formulas
-def multiquadric(epsilon, r):
-    # multiquadratic
-    f = np.sqrt((epsilon*r)**2 + 1.0)
+# polynomial (multiquadric, inverse multiquadric, etc)
+def poly(epsilon, r, order=0.5, **kwargs):
+    f = np.power((epsilon * r) ** 2 + 1.0, order)
     return f
 
-def inverse_multiquadric(epsilon, r):
-    # inverse multiquadratic
-    f = 1.0/np.sqrt((epsilon*r)**2 + 1.0)
+
+# polyharmonic spline
+def poly_spline(epsilon, r, order=1, **kwargs):
+    f = np.power(epsilon * r, order)
     return f
 
-def inverse_quadratic(epsilon, r):
-    # inverse quadratic
-    f = 1.0/(1.0+(epsilon*r)**2)
+
+# gaussian
+def gaussian(epsilon, r, **kwargs):
+    f = np.exp(-((epsilon * r) ** 2))
     return f
 
-def gaussian(epsilon, r):
-    # gaussian
-    f = np.exp(-(epsilon*r)**2)
-    return f
 
-def poly_spline1(epsilon, r):
-    # First-order polyharmonic spline
-    f = (epsilon*r)
-    return f
-
-def poly_spline3(epsilon, r):
-    # Third-order polyharmonic spline
-    f = (epsilon*r)**3
-    return f
-
-def poly_spline5(epsilon, r):
-    # Fifth-order polyharmonic spline
-    f = (epsilon*r)**5
-    return f
-
-def thin_plate(epsilon, r):
-    # thin plate spline
+# thin plate spline
+def thin_plate(epsilon, r, **kwargs):
     f = r**2 * np.log(r)
     # the spline is zero at zero
     f[r == 0] = 0.0
     return f
+
 
 # calculate Euclidean distances between points as matrices
 def distance_matrix(x, cntrs):
@@ -277,21 +293,23 @@ def distance_matrix(x, cntrs):
     s, N = np.shape(cntrs)
     D = np.zeros((M, N))
     for d in range(s):
-        ii, = np.dot(d, np.ones((1, N))).astype(np.int64)
-        jj, = np.dot(d, np.ones((1, M))).astype(np.int64)
+        (ii,) = np.dot(d, np.ones((1, N))).astype(np.int64)
+        (jj,) = np.dot(d, np.ones((1, M))).astype(np.int64)
         dx = x[ii, :].T - cntrs[jj, :]
         D += dx**2
     D = np.sqrt(D)
+    D[np.isnan(D)] = 0.0
     return D
+
 
 # calculate polynomial matrix to augment radial basis functions
 def polynomial_matrix(x, y, order):
     c = 0
     M = len(x)
-    N = (order**2 + 3*order)//2 + 1
-    POLY = np.zeros((M, N))
+    N = (order**2 + 3 * order) // 2 + 1
+    P = np.zeros((M, N))
     for ii in range(order + 1):
         for jj in range(ii + 1):
-            POLY[:, c] = (x**jj)*(y**(ii-jj))
+            P[:, c] = (x**jj) * (y ** (ii - jj))
             c += 1
-    return POLY
+    return P

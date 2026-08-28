@@ -1,0 +1,40 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.3.0
+title: spatial-interpolators
+abstract: Spatial interpolation tools for Python
+type: software
+keywords:
+  - spatial interpolation
+  - interpolation over a sphere
+  - regridding
+license: MIT
+version: "1.0.1"
+date-released: "2022-06-28"
+message: If you use this software, please consider citing our library.
+
+authors:
+  - given-names: Tyler
+    family-names: Sutterley
+    affiliation: University of Washington, Applied Physics Laboratory
+
+contact:
+  - family-names: Sutterley
+    given-names: Tyler C.
+    orcid: "https://orcid.org/0000-0002-6964-1194"
+
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.6773704
+    description: Persistent identifier for spatial-interpolators
+  - type: url
+    value: https://github.com/polargeodesy/spatial-interpolators
+    description: GitHub repository for spatial-interpolators
+  - type: url
+    value: https://pypi.org/project/spatial-interpolators
+    description: spatial-interpolators on PyPI
+repository-code: "https://github.com/polargeodesy/spatial-interpolators"
+url: "https://spatial-interpolators.readthedocs.io"
+doi: "10.5281/zenodo.6773704"
+

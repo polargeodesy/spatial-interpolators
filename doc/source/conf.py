@@ -10,25 +10,55 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
+import os
+
 # import sys
+import logging
 import datetime
+import warnings
+
 # sys.path.insert(0, os.path.abspath('.'))
-from pkg_resources import get_distribution
+import importlib.metadata
+import importlib.util
 
 
 # -- Project information -----------------------------------------------------
+on_rtd = os.environ.get("READTHEDOCS") == "True"
+on_github = os.environ.get("GITHUB_ACTIONS") == "true"
 
-project = 'spatial-interpolators'
+# package metadata
+metadata = importlib.metadata.metadata("spatial-interpolators")
+project = metadata["Name"]
 year = datetime.date.today().year
 copyright = f"2018\u2013{year}, Tyler C. Sutterley"
-author = 'Tyler C. Sutterley'
+author = "Tyler C. Sutterley"
 
-# The full version, including alpha/beta/rc tags
-# get semantic version from setuptools-scm
-version = get_distribution("spatial-interpolators").version
+# software version
+version = metadata["version"]
 # append "v" before the version
-release = "v{0}".format(version)
+release = f"v{version}"
+
+
+# filter out numfig warnings when building documentation, see
+# https://github.com/sphinx-doc/sphinx/issues/10316
+# https://github.com/sphinx-doc/sphinx/pull/14446
+class numfig_filter(logging.Filter):
+    def filter(self, record):
+        warning_type = getattr(record, "type", "")
+        warning_subtype = getattr(record, "subtype", "")
+        suppress_warning = (
+            f"{warning_type}.{warning_subtype}" == "html.numfig_format"
+            or record.getMessage().startswith("numfig_format")
+        )
+        return not suppress_warning
+
+
+# add filter to logger
+logging.getLogger("sphinx").addFilter(numfig_filter())
+
+# suppress warnings in examples and documentation
+if on_rtd:
+    warnings.filterwarnings("ignore")
 
 # -- General configuration ---------------------------------------------------
 
@@ -36,63 +66,124 @@ release = "v{0}".format(version)
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx.ext.autodoc",
+    "matplotlib.sphinxext.plot_directive",
+    "myst_nb",
     "numpydoc",
+    "sphinxcontrib.bibtex",
+    "sphinx.ext.autodoc",
     "sphinx.ext.graphviz",
     "sphinx.ext.viewcode",
-    "sphinxarg.ext"
+    "sphinx_design",
+    "sphinxarg.ext",
 ]
 
+# use myst for notebooks
+source_suffix = {
+    ".rst": "restructuredtext",
+    ".ipynb": "myst-nb",
+}
+# execute notebooks on build
+if on_rtd:
+    nb_execution_mode = "auto"
+    nb_execution_excludepatterns = [
+        "Interpolate-Sphere.ipynb",
+    ]
+    nb_output_stderr = "remove-warn"
+elif on_github:
+    nb_execution_mode = "off"
+else:
+    nb_execution_mode = "auto"
+    nb_execution_excludepatterns = [
+        "notebooks/*.ipynb",
+    ]
+    nb_output_stderr = "remove-warn"
+
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['**.ipynb_checkpoints']
+exclude_patterns = [
+    "**Untitled*.ipynb",
+    "**.ipynb_checkpoints",
+]
 
 # location of master document (by default sphinx looks for contents.rst)
-master_doc = 'index'
+master_doc = "index"
 
 # -- Configuration options ---------------------------------------------------
 autosummary_generate = True
-autodoc_member_order = 'bysource'
+autodoc_member_order = "bysource"
 numpydoc_show_class_members = False
-pygments_style = 'native'
+pygments_style = "native"
+bibtex_bibfiles = ["_assets/interpolators-refs.bib"]
+bibtex_default_style = "plain"
+plot_formats = ["png"]
+plot_html_show_formats = False
+plot_html_show_source_link = False
+numfig = True
+numfig_secnum_depth = 1
 
 # -- Options for HTML output -------------------------------------------------
 
-# html_title = "spatial-interpolators"
-html_short_title = "spatial-interpolators"
+# html_title = metadata["Name"]
+html_short_title = metadata["Name"]
 html_show_sourcelink = False
 html_show_sphinx = True
 html_show_copyright = True
 
+numfig_format = {
+    "code-block": None,
+    "figure": "Figure %s:",
+    "table": "Table %s:",
+}
+
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
-html_theme_options = {}
+html_theme = "sphinx_rtd_theme"
+# html_theme_options = {
+#     "logo_only": True,
+# }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
-repository_url = "https://github.com/tsutterley/spatial-interpolators"
+# html_logo = "_assets/logo.png"
+html_static_path = ["_static"]
+# fetch the project urls
+project_urls = {}
+for project_url in metadata.get_all("Project-URL"):
+    name, _, url = project_url.partition(", ")
+    project_urls[name.lower()] = url
+# fetch the repository url
+github_url = project_urls.get("repository")
+*_, github_user, github_repo = github_url.split("/")
+# add html context
 html_context = {
+    "display_github": True,
+    "github_user": github_user,
+    "github_repo": github_repo,
+    "github_version": "main",
+    "conf_py_path": "/doc/source/",
     "menu_links": [
         (
             '<i class="fa fa-github fa-fw"></i> Source Code',
-            repository_url,
+            github_url,
         ),
         (
             '<i class="fa fa-book fa-fw"></i> License',
-            f"{repository_url}/blob/main/LICENSE",
+            f"{github_url}/blob/main/LICENSE",
+        ),
+        (
+            '<i class="fa fa-comment fa-fw"></i> Discussions',
+            f"{github_url}/discussions",
         ),
     ],
 }
 
+
 # Load the custom CSS files (needs sphinx >= 1.6 for this to work)
 def setup(app):
-    """Load the custom CSS file"""
     app.add_css_file("style.css")

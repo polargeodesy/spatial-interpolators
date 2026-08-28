@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-u"""
+"""
 shepard_interpolant.py
 Written by Tyler Sutterley (05/2022)
 
@@ -47,13 +47,26 @@ UPDATE HISTORY:
         following Schnell et al (2014)
     Written 08/2016
 """
+
 import numpy as np
 
-def shepard_interpolant(xs, ys, zs, XI, YI, power=0.0, eps=1e-7,
-    modified=False, D=25e3, L=500e3):
+
+def shepard_interpolant(
+    xs,
+    ys,
+    zs,
+    XI,
+    YI,
+    power=0.0,
+    eps=1e-7,
+    modified=False,
+    D=25e3,
+    L=500e3,
+):
     """
     Evaluates Shepard interpolants to 2D data based on
-    inverse distance weighting
+    inverse distance weighting :cite:p:`Shepard:1968ef`
+    :cite:p:`Schnell:2014if`
 
     Parameters
     ----------
@@ -71,8 +84,8 @@ def shepard_interpolant(xs, ys, zs, XI, YI, power=0.0, eps=1e-7,
         Power used in the inverse distance weighting
     eps: float, default 1e-7
         minimum distance value for valid points
-    modified: boo, default False
-        use declustering modified Shepard's interpolants [Schnell2014]_
+    modified: bool, default False
+        use declustering modified Shepard's interpolants
     D: float, default 25e3
         declustering distance
     L: float, default 500e3
@@ -82,18 +95,6 @@ def shepard_interpolant(xs, ys, zs, XI, YI, power=0.0, eps=1e-7,
     -------
     ZI: float
         interpolated data grid
-
-    References
-    ----------
-    .. [Schnell2014] J. Schnell, C. D. Holmes, A. Jangam, and M. J. Prather,
-        "Skill in forecasting extreme ozone pollution episodes with a global
-        atmospheric chemistry model," *Atmospheric Physics and chemistry*,
-        14(15), 7721--7739, (2014). `doi: 10.5194/acp-14-7721-2014
-        <https://doi.org/10.5194/acp-14-7721-2014>`_
-    .. [Shepard1968] D. Shepard, "A two-dimensional interpolation function
-        for irregularly spaced data," *ACM68: Proceedings of the 1968 23rd
-        ACM National Conference*, 517--524, (1968).
-        `doi: 10.1145/800186.810616 <https://doi.org/10.1145/800186.810616>`_
     """
 
     # remove singleton dimensions
@@ -105,7 +106,7 @@ def shepard_interpolant(xs, ys, zs, XI, YI, power=0.0, eps=1e-7,
     # number of data points
     npts = len(zs)
     # size of new matrix
-    if (np.ndim(XI) == 1):
+    if np.ndim(XI) == 1:
         ni = len(XI)
     else:
         nx, ny = np.shape(XI)
@@ -113,11 +114,11 @@ def shepard_interpolant(xs, ys, zs, XI, YI, power=0.0, eps=1e-7,
 
     # Check to make sure sizes of input arguments are correct and consistent
     if (len(zs) != len(xs)) | (len(zs) != len(ys)):
-        raise Exception('Length of input arrays must be equal')
-    if (np.shape(XI) != np.shape(YI)):
-        raise Exception('Size of output arrays must be equal')
-    if (power < 0):
-        raise ValueError('Power parameter must be positive')
+        raise Exception("Length of input arrays must be equal")
+    if np.shape(XI) != np.shape(YI):
+        raise Exception("Size of output arrays must be equal")
+    if power < 0:
+        raise ValueError("Power parameter must be positive")
 
     # Modified Shepard interpolants for declustering data
     if modified:
@@ -125,14 +126,14 @@ def shepard_interpolant(xs, ys, zs, XI, YI, power=0.0, eps=1e-7,
         M = np.zeros((npts))
         for i, XY in enumerate(zip(xs, ys)):
             # compute radial distance between data point and data coordinates
-            Rd = np.sqrt((XY[0] - xs)**2 + (XY[1] - ys)**2)
+            Rd = np.sqrt((XY[0] - xs) ** 2 + (XY[1] - ys) ** 2)
             M[i] = np.count_nonzero(Rd <= D)
 
     # for each interpolated value
     ZI = np.zeros((ni))
     for i, XY in enumerate(zip(XI.flatten(), YI.flatten())):
         # compute the radial distance between point i and data coordinates
-        Re = np.sqrt((XY[0] - xs)**2 + (XY[1] - ys)**2)
+        Re = np.sqrt((XY[0] - xs) ** 2 + (XY[1] - ys) ** 2)
         # Modified Shepard interpolants for declustering data
         if modified:
             # calculate weights
@@ -142,36 +143,36 @@ def shepard_interpolant(xs, ys, zs, XI, YI, power=0.0, eps=1e-7,
             ind_M = np.nonzero((Re >= D) & (Re < L))
             ind_L = np.nonzero((Re >= L))
             # declustering of close points (weighted equally)
-            w[ind_D] = D**(-power)/M[ind_D]
+            w[ind_D] = D ** (-power) / M[ind_D]
             # inverse distance weighting of mid-range points with scaling
-            power_inverse_distance = Re[ind_M]**(-power)
-            w[ind_M] = power_inverse_distance/M[ind_M]
+            power_inverse_distance = Re[ind_M] ** (-power)
+            w[ind_M] = power_inverse_distance / M[ind_M]
             # no weight of distant points
             w[ind_L] = 0.0
             # calculate sum of all weights
             s = np.sum(w)
             # Find 2D interpolated surface
-            ZI[i] = np.dot(w/s, zs) if (s > 0.0) else np.nan
+            ZI[i] = np.dot(w / s, zs) if (s > 0.0) else np.nan
         elif (Re < eps).any():
             # if a data coordinate is within the EPS cutoff
-            min_indice, = np.nonzero(Re < eps)
+            (min_indice,) = np.nonzero(Re < eps)
             ZI[i] = zs[min_indice]
         else:
             # compute the weights based on POWER
-            if (power == 0.0):
+            if power == 0.0:
                 # weights if POWER is 0
-                w = np.ones((npts))/npts
+                w = np.ones((npts)) / npts
             else:
                 # normalized weights if POWER > 0 (typically between 1 and 3)
                 # in the inverse distance weighting
-                power_inverse_distance = Re**(-power)
+                power_inverse_distance = Re ** (-power)
                 s = np.sum(power_inverse_distance)
-                w = power_inverse_distance/s
+                w = power_inverse_distance / s
             # Find 2D interpolated surface
             ZI[i] = np.dot(w, zs)
 
     # reshape to original dimensions
-    if (np.ndim(XI) != 1):
+    if np.ndim(XI) != 1:
         ZI = ZI.reshape(nx, ny)
     # return output matrix/array
     return ZI

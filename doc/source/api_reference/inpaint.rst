@@ -1,6 +1,6 @@
-=======
-inpaint
-=======
+=================================
+``spatial_interpolators.inpaint``
+=================================
 
 - Inpaint over missing data in a two-dimensional array using a penalized least square method based on discrete cosine transforms
 
@@ -14,7 +14,7 @@ Calling Sequence
 
 `Source code`__
 
-.. __: https://github.com/tsutterley/spatial-interpolators/blob/main/spatial_interpolators/inpaint.py
+.. __: https://github.com/polargeodesy/spatial-interpolators/blob/main/spatial_interpolators/inpaint.py
 
 .. autofunction:: spatial_interpolators.inpaint
 

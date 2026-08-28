@@ -21,6 +21,7 @@ PvQv_C.c
 *.rar
 *.tar
 *.zip
+*.mat
 
 # Logs and databases #
 ######################

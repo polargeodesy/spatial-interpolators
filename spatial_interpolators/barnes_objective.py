@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-u"""
+"""
 barnes_objective.py
 Written by Tyler Sutterley (05/2022)
 
@@ -49,12 +49,25 @@ UPDATE HISTORY:
     Updated 01/2022: added function docstrings
     Written 08/2016
 """
+
 import numpy as np
 
-def barnes_objective(xs, ys, zs, XI, YI, XR, YR, runs=3):
+
+def barnes_objective(
+    xs,
+    ys,
+    zs,
+    XI,
+    YI,
+    XR,
+    YR,
+    runs=3,
+):
     """
     Barnes objective analysis for the optimal interpolation
     of an input grid using a successive corrections scheme
+    :cite:p:`Barnes:1994iq,Barnes:1994bh,Barnes:1994gu`
+    :cite:p:`Daley:1993wl`
 
     Parameters
     ----------
@@ -79,26 +92,6 @@ def barnes_objective(xs, ys, zs, XI, YI, XR, YR, runs=3):
     -------
     ZI: float
         interpolated data grid
-
-    References
-    ----------
-    .. [Barnes1994a] S. L. Barnes,
-        "Applications of the Barnes objective analysis scheme.
-        Part I:  Effects of undersampling, wave position, and
-        station randomness," *Journal of Atmospheric and Oceanic
-        Technology*, 11(6), 1433--1448, (1994).
-    .. [Barnes1994b] S. L. Barnes,
-        "Applications of the Barnes objective analysis scheme.
-        Part II:  Improving derivative estimates,"
-        *Journal of Atmospheric and Oceanic Technology*,
-        11(6), 1449--1458, (1994).
-    .. [Barnes1994c] S. L. Barnes,
-        "Applications of the Barnes objective analysis scheme.
-        Part III:  Tuning for minimum error,"
-        *Journal of Atmospheric and Oceanic Technology*,
-        11(6), 1459--1479, (1994).
-    .. [Daley1991] R. Daley, *Atmospheric data analysis*,
-        Cambridge Press, New York.  (1991).
     """
     # remove singleton dimensions
     xs = np.squeeze(xs)
@@ -107,16 +100,16 @@ def barnes_objective(xs, ys, zs, XI, YI, XR, YR, runs=3):
     XI = np.squeeze(XI)
     YI = np.squeeze(YI)
     # size of new matrix
-    if (np.ndim(XI) == 1):
+    if np.ndim(XI) == 1:
         nx = len(XI)
     else:
         nx, ny = np.shape(XI)
 
     # Check to make sure sizes of input arguments are correct and consistent
     if (len(zs) != len(xs)) | (len(zs) != len(ys)):
-        raise Exception('Length of X, Y, and Z must be equal')
-    if (np.shape(XI) != np.shape(YI)):
-        raise Exception('Size of XI and YI must be equal')
+        raise Exception("Length of X, Y, and Z must be equal")
+    if np.shape(XI) != np.shape(YI):
+        raise Exception("Size of XI and YI must be equal")
 
     # square of Barnes smoothing lengths scale
     xr2 = XR**2
@@ -128,11 +121,11 @@ def barnes_objective(xs, ys, zs, XI, YI, XR, YR, runs=3):
         dx = np.abs(xs - XY[0])
         dy = np.abs(ys - XY[1])
         # calculate weights
-        w = np.exp(-dx**2/xr2 - dy**2/yr2)
-        zp[i] = np.sum(zs*w)/sum(w)
+        w = np.exp(-(dx**2) / xr2 - dy**2 / yr2)
+        zp[i] = np.sum(zs * w) / sum(w)
 
     # allocate for even and odd zp arrays if iterating
-    if (runs > 0):
+    if runs > 0:
         zp_even = np.zeros_like(zs)
         zp_odd = np.zeros_like(zs)
 
@@ -143,25 +136,25 @@ def barnes_objective(xs, ys, zs, XI, YI, XR, YR, runs=3):
             dx = np.abs(xs - xy[0])
             dy = np.abs(ys - xy[1])
             # calculate weights
-            w = np.exp(-dx**2/xr2 - dy**2/yr2)
+            w = np.exp(-(dx**2) / xr2 - dy**2 / yr2)
             # differing weights for even and odd arrays
-            if ((n % 2) == 0):
-                zp_even[j] = zp_odd[j] + np.sum((zs - zp_odd)*w)/np.sum(w)
+            if (n % 2) == 0:
+                zp_even[j] = zp_odd[j] + np.sum((zs - zp_odd) * w) / np.sum(w)
             else:
-                zp_odd[j] = zp_even[j] + np.sum((zs - zp_even)*w)/np.sum(w)
+                zp_odd[j] = zp_even[j] + np.sum((zs - zp_even) * w) / np.sum(w)
         # calculate zp for run n
         for i, XY in enumerate(zip(XI.flatten(), YI.flatten())):
             dx = np.abs(xs - XY[0])
             dy = np.abs(ys - XY[1])
-            w = np.exp(-dx**2/xr2 - dy**2/yr2)
+            w = np.exp(-(dx**2) / xr2 - dy**2 / yr2)
             # differing weights for even and odd arrays
-            if ((n % 2) == 0):
-                zp[i] = zp[i] + np.sum((zs - zp_even)*w)/np.sum(w)
+            if (n % 2) == 0:
+                zp[i] = zp[i] + np.sum((zs - zp_even) * w) / np.sum(w)
             else:
-                zp[i] = zp[i] + np.sum((zs - zp_odd)*w)/np.sum(w)
+                zp[i] = zp[i] + np.sum((zs - zp_odd) * w) / np.sum(w)
 
     # reshape to original dimensions
-    if (np.ndim(XI) != 1):
+    if np.ndim(XI) != 1:
         ZI = zp.reshape(nx, ny)
     else:
         ZI = zp.copy()

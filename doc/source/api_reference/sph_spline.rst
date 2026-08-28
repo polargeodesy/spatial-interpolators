@@ -1,6 +1,6 @@
-==========
-sph_spline
-==========
+====================================
+``spatial_interpolators.sph_spline``
+====================================
 
 - Interpolates data over a sphere using spherical surface splines in tension
 
@@ -14,6 +14,6 @@ Calling Sequence
 
 `Source code`__
 
-.. __: https://github.com/tsutterley/spatial-interpolators/blob/main/spatial_interpolators/sph_spline.py
+.. __: https://github.com/polargeodesy/spatial-interpolators/blob/main/spatial_interpolators/sph_spline.py
 
 .. autofunction:: spatial_interpolators.sph_spline

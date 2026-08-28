@@ -1,6 +1,6 @@
-============
-radial_basis
-============
+======================================
+``spatial_interpolators.radial_basis``
+======================================
 
 - Interpolates data using radial basis functions
 
@@ -14,6 +14,6 @@ Calling Sequence
 
 `Source code`__
 
-.. __: https://github.com/tsutterley/spatial-interpolators/blob/main/spatial_interpolators/radial_basis.py
+.. __: https://github.com/polargeodesy/spatial-interpolators/blob/main/spatial_interpolators/radial_basis.py
 
 .. autofunction:: spatial_interpolators.radial_basis

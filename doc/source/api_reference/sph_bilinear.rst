@@ -1,6 +1,6 @@
-============
-sph_bilinear
-============
+======================================
+``spatial_interpolators.sph_bilinear``
+======================================
 
 - Interpolates data over a sphere using bilinear functions
 
@@ -14,6 +14,6 @@ Calling Sequence
 
 `Source code`__
 
-.. __: https://github.com/tsutterley/spatial-interpolators/blob/main/spatial_interpolators/sph_bilinear.py
+.. __: https://github.com/polargeodesy/spatial-interpolators/blob/main/spatial_interpolators/sph_bilinear.py
 
 .. autofunction:: spatial_interpolators.sph_bilinear

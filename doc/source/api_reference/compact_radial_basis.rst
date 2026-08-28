@@ -1,6 +1,6 @@
-====================
-compact_radial_basis
-====================
+==============================================
+``spatial_interpolators.compact_radial_basis``
+==============================================
 
 - Interpolates data using compactly supported radial basis functions of minimal degree and sparse matrix algebra
 
@@ -14,6 +14,6 @@ Calling Sequence
 
 `Source code`__
 
-.. __: https://github.com/tsutterley/spatial-interpolators/blob/main/spatial_interpolators/compact_radial_basis.py
+.. __: https://github.com/polargeodesy/spatial-interpolators/blob/main/spatial_interpolators/compact_radial_basis.py
 
 .. autofunction:: spatial_interpolators.compact_radial_basis
