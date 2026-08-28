@@ -27,6 +27,7 @@ import urllib.request
 
 _default_directory = pathlib.Path.cwd()
 
+
 def fetch_test_data(
     directory: str | pathlib.Path = _default_directory,
     N: int = 324,
