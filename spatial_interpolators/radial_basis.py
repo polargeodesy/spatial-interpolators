@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 radial_basis.py
-Written by Tyler Sutterley (05/2022)
+Written by Tyler Sutterley (08/2026)
 
 Interpolates data using radial basis functions
 
@@ -49,6 +49,7 @@ REFERENCES:
         Computational Mathematics, 2003.
 
 UPDATE HISTORY:
+    Updated 08/2026: fix case where floating point errors cause negative roots
     Updated 05/2022: updated docstrings to numpy documentation format
     Updated 01/2022: added function docstrings
     Updated 07/2021: using scipy spatial distance routines
@@ -297,6 +298,7 @@ def distance_matrix(x, cntrs):
         dx = x[ii, :].T - cntrs[jj, :]
         D += dx**2
     D = np.sqrt(D)
+    D[np.isnan(D)] = 0.0
     return D
 
 

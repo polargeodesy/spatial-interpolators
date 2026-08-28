@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 sph_radial_basis.py
-Written by Tyler Sutterley (05/2022)
+Written by Tyler Sutterley (08/2026)
 
 Interpolates data over a sphere using radial basis functions
     with QR factorization option to eliminate ill-conditioning
@@ -51,6 +51,7 @@ REFERENCES:
         Radial Basis Functions." SIAM J. Sci. Comput. 33(2), 869-892 (2011)
 
 UPDATE HISTORY:
+    Updated 08/2026: fix case where floating point errors cause negative roots
     Updated 05/2022: updated docstrings to numpy documentation format
     Updated 01/2022: added function docstrings
     Updated 02/2019: compatibility updates for python3
@@ -386,6 +387,7 @@ def distance_matrix(x, cntrs):
     dxy = 2.0 * np.dot(x.transpose(), cntrs)
     dy2 = np.kron(np.ones((M, 1)), np.sum(cntrs * cntrs, axis=0))
     D = np.sqrt(dx2 - dxy + dy2)
+    D[np.isnan(D)] = 0.0
     return D
 
 
