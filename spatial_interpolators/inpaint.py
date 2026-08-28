@@ -41,7 +41,16 @@ import scipy.fftpack
 import scipy.spatial
 
 
-def inpaint(xs, ys, zs, n=100, s0=3, z0=None, power=2, epsilon=2):
+def inpaint(
+    xs,
+    ys,
+    zs,
+    n=100,
+    s0=3,
+    z0=None,
+    power=2,
+    epsilon=2,
+):
     """
     Inpaint over missing data in a two-dimensional array using a
     penalized least square method based on discrete cosine transforms

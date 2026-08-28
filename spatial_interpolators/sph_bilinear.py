@@ -39,7 +39,15 @@ UPDATE HISTORY:
 import numpy as np
 
 
-def sph_bilinear(x, y, z, xi, yi, flattened=False, fill_value=-9999.0):
+def sph_bilinear(
+    x,
+    y,
+    z,
+    xi,
+    yi,
+    flattened=False,
+    fill_value=-9999.0,
+):
     """
     Spherical interpolation routine for gridded data using
     bilinear interpolation

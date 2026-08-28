@@ -8,6 +8,7 @@ from spatial_interpolators.sph_radial_basis import sph_radial_basis
 from spatial_interpolators.shepard_interpolant import shepard_interpolant
 from spatial_interpolators.sph_bilinear import sph_bilinear
 from spatial_interpolators.inpaint import inpaint
+import spatial_interpolators.datasets
 import spatial_interpolators.spatial
 import spatial_interpolators.version
 

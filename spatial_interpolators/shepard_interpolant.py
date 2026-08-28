@@ -52,7 +52,16 @@ import numpy as np
 
 
 def shepard_interpolant(
-    xs, ys, zs, XI, YI, power=0.0, eps=1e-7, modified=False, D=25e3, L=500e3
+    xs,
+    ys,
+    zs,
+    XI,
+    YI,
+    power=0.0,
+    eps=1e-7,
+    modified=False,
+    D=25e3,
+    L=500e3,
 ):
     """
     Evaluates Shepard interpolants to 2D data based on

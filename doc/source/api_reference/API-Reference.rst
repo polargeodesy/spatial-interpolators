@@ -12,8 +12,15 @@ API Reference
     ./inpaint.rst
     ./legendre.rst
     ./radial_basis.rst
-    ./spatial.rst
     ./shepard_interpolant.rst
     ./sph_bilinear.rst
     ./sph_radial_basis.rst
     ./sph_spline.rst
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Utilities
+
+    ./datasets/datasets.rst
+    ./spatial.rst
+

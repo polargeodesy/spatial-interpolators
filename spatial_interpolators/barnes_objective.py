@@ -53,7 +53,16 @@ UPDATE HISTORY:
 import numpy as np
 
 
-def barnes_objective(xs, ys, zs, XI, YI, XR, YR, runs=3):
+def barnes_objective(
+    xs,
+    ys,
+    zs,
+    XI,
+    YI,
+    XR,
+    YR,
+    runs=3,
+):
     """
     Barnes objective analysis for the optimal interpolation
     of an input grid using a successive corrections scheme

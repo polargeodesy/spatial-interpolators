@@ -55,6 +55,7 @@ all = ["jupyterlab", "matplotlib", "notebook"]
 dev = ["flake8", "gh", "pytest>=4.6", "pytest-cov", "pytest-xdist"]
 
 [project.scripts]
+"fetch_test_data.py" = "spatial_interpolators.datasets.fetch_test_data:main" 
 
 [tool.setuptools]
 ext-modules = [

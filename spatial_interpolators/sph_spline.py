@@ -52,7 +52,14 @@ import scipy.special
 from spatial_interpolators.PvQv_C import PvQv_C
 
 
-def sph_spline(lon, lat, data, longitude, latitude, tension=0.0):
+def sph_spline(
+    lon,
+    lat,
+    data,
+    longitude,
+    latitude,
+    tension=0.0,
+):
     """
     Interpolates a sparse grid over a sphere using spherical
     surface splines in tension :cite:p:`Wessel:2008ea`
