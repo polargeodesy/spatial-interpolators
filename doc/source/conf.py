@@ -85,7 +85,9 @@ source_suffix = {
 # execute notebooks on build
 if on_rtd:
     nb_execution_mode = "auto"
-    nb_execution_excludepatterns = []
+    nb_execution_excludepatterns = [
+        "Interpolate-Sphere.ipynb",
+    ]
     nb_output_stderr = "remove-warn"
 elif on_github:
     nb_execution_mode = "off"
