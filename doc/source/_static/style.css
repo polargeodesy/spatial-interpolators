@@ -1,3 +1,25 @@
+/* color adjustments to fit logo theme */
+.wy-menu > .caption > span.caption-text {
+    color: #488e9e;
+}
+.wy-nav-top {
+    background-color: #488e9e;
+    color: #ffffff;
+}
+.wy-side-nav-search {
+    background-color: #488e9e;
+}
+.wy-side-nav-search input[type="text"] {
+    border-color: #281a2c;
+}
+
+/* custom styles for flat tables */
+.wy-table-responsive table.flat, .wy-table-responsive table.flat td {
+    border: none;
+    background-color: rgba(0, 0, 0, 0.0) !important;
+    text-align: left;
+}
+
 /* fix for position of equation numbers
  * https://github.com/rtfd/sphinx_rtd_theme/issues/301
  */
@@ -13,4 +35,18 @@
     display: inline-block;
     visibility: visible;
     margin-right: -0.7em;
+}
+
+/* fix for property line spacing
+* https://github.com/rtfd/sphinx_rtd_theme/issues/1301
+*/
+.property {
+    display: block !important;
+    padding-right: 8px;
+    max-width: 100%;
+}
+
+/* caption positions for tables and figures */
+.docutils caption {
+    caption-side: bottom;
 }
